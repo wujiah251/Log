@@ -1,6 +1,5 @@
 #include "log.h"
 #include <errno.h>
-#include <unistd.h>      //access, getpid
 #include <assert.h>      //assert
 #include <stdarg.h>      //va_list
 #include <sys/stat.h>    //mkdir
@@ -16,11 +15,7 @@
 // 消费者等待时间
 #define BUFF_WAIT_TIME 1
 
-pid_t gettid()
-{
-    // TODO:跨平台
-    return syscall(SYS_gettid);
-}
+
 
 pthread_mutex_t Log::_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t Log::_cond = PTHREAD_COND_INITIALIZER;
@@ -58,8 +53,6 @@ Log::Log()
     // 消费者和生产者指向头节点
     producer_ptr = head;
     consumer_ptr = head;
-
-    pid = getpid();
 }
 
 // 初始化日志类
@@ -266,7 +259,7 @@ bool Log::switch_file(int my_year, int my_mon, int my_day)
         _mon = my_mon;
         _day = my_day;
         char log_path[1024] = {};
-        sprintf(log_path, "%s/%s.%d%02d%02d.%u.log", dir, prog, _year, _mon, _day, pid);
+        sprintf(log_path, "%s/%s.%d%02d%02d.log", dir, prog, _year, _mon, _day);
         fp = fopen(log_path, "w");
         if (fp)
         {
@@ -282,7 +275,7 @@ bool Log::switch_file(int my_year, int my_mon, int my_day)
         _year = my_year;
         _mon = my_mon;
         _day = my_day;
-        sprintf(log_path, "%s/%s.%d%02d%02d.%u.log", dir, prog, _year, _mon, _day, pid);
+        sprintf(log_path, "%s/%s.%d%02d%02d.log", dir, prog, _year, _mon, _day);
         fp = fopen(log_path, "w");
         if (fp)
         {
@@ -300,13 +293,13 @@ bool Log::switch_file(int my_year, int my_mon, int my_day)
         //mv xxx.log.[i] xxx.log.[i + 1]
         for (int i = log_count - 1; i > 0; --i)
         {
-            sprintf(old_path, "%s/%s.%d%02d%02d.%u.log.%d", dir, prog, _year, _mon, _day, pid, i);
-            sprintf(new_path, "%s/%s.%d%02d%02d.%u.log.%d", dir, prog, _year, _mon, _day, pid, i + 1);
+            sprintf(old_path, "%s/%s.%d%02d%02d.log.%d", dir, prog, _year, _mon, _day, i);
+            sprintf(new_path, "%s/%s.%d%02d%02d.log.%d", dir, prog, _year, _mon, _day, i + 1);
             rename(old_path, new_path);
         }
         //mv xxx.log xxx.log.1
-        sprintf(old_path, "%s/%s.%d%02d%02d.%u.log", dir, prog, _year, _mon, _day, pid);
-        sprintf(new_path, "%s/%s.%d%02d%02d.%u.log.1", dir, prog, _year, _mon, _day, pid);
+        sprintf(old_path, "%s/%s.%d%02d%02d.log", dir, prog, _year, _mon, _day);
+        sprintf(new_path, "%s/%s.%d%02d%02d.log.1", dir, prog, _year, _mon, _day);
         rename(old_path, new_path);
         fp = fopen(old_path, "w");
         if (fp)

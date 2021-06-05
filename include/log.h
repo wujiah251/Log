@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
+#include <unistd.h>      //access, getpid
 #include <sys/time.h>
 #include <sys/types.h> //getpid, gettid
 
@@ -20,7 +21,7 @@ enum LOG_LEVEL
     TRACE, //6
 };
 
-extern pid_t gettid();
+#define gettid() syscall(__NR_gettid)
 
 class utc_timer
 {
@@ -137,8 +138,6 @@ private:
 
     FILE *fp;
 
-    // 进程id
-    pid_t pid;
     // 当前正在写的日志文件的时间
     int _year, _mon, _day;
     // 当日日志文件个数
@@ -200,8 +199,8 @@ void *persist_worker(void *args);
     {                                                                                           \
         if (Log::getInstance()->get_level() >= TRACE)                                           \
         {                                                                                       \
-            Log::getInstance()->try_append("[TRACE]", "[%u]%s:%d(%s): " fmt "\n",               \
-                                           gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+            Log::getInstance()->try_append("[TRACE]", "%s:%d(%s): " fmt "\n",               \
+                                            __FILE__, __LINE__, __FUNCTION__, ##args); \
         }                                                                                       \
     } while (0)
 
@@ -211,8 +210,8 @@ void *persist_worker(void *args);
     {                                                                                           \
         if (Log::getInstance()->get_level() >= DEBUG)                                           \
         {                                                                                       \
-            Log::getInstance()->try_append("[DEBUG]", "[%u]%s:%d(%s): " fmt "\n",               \
-                                           gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+            Log::getInstance()->try_append("[DEBUG]", "%s:%d(%s): " fmt "\n",               \
+                                           __FILE__, __LINE__, __FUNCTION__, ##args); \
         }                                                                                       \
     } while (0)
 
@@ -222,8 +221,8 @@ void *persist_worker(void *args);
     {                                                                                           \
         if (Log::getInstance()->get_level() >= INFO)                                            \
         {                                                                                       \
-            Log::getInstance()->try_append("[INFO]", "[%u]%s:%d(%s): " fmt "\n",                \
-                                           gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+            Log::getInstance()->try_append("[INFO]", "%s:%d(%s): " fmt "\n",                \
+                                        __FILE__, __LINE__, __FUNCTION__, ##args); \
         }                                                                                       \
     } while (0)
 
@@ -233,8 +232,8 @@ void *persist_worker(void *args);
     {                                                                                           \
         if (Log::getInstance()->get_level() >= INFO)                                            \
         {                                                                                       \
-            Log::getInstance()->try_append("[INFO]", "[%u]%s:%d(%s): " fmt "\n",                \
-                                           gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+            Log::getInstance()->try_append("[NORMAL]", "%s:%d(%s): " fmt "\n",                \
+                                           __FILE__, __LINE__, __FUNCTION__, ##args); \
         }                                                                                       \
     } while (0)
 
@@ -244,8 +243,8 @@ void *persist_worker(void *args);
     {                                                                                           \
         if (Log::getInstance()->get_level() >= WARN)                                            \
         {                                                                                       \
-            Log::getInstance()->try_append("[WARN]", "[%u]%s:%d(%s): " fmt "\n",                \
-                                           gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+            Log::getInstance()->try_append("[WARN]", "%s:%d(%s): " fmt "\n",                \
+                                        __FILE__, __LINE__, __FUNCTION__, ##args); \
         }                                                                                       \
     } while (0)
 
@@ -255,8 +254,8 @@ void *persist_worker(void *args);
     {                                                                                           \
         if (Log::getInstance()->get_level() >= ERROR)                                           \
         {                                                                                       \
-            Log::getInstance()->try_append("[ERROR]", "[%u]%s:%d(%s): " fmt "\n",               \
-                                           gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+            Log::getInstance()->try_append("[ERROR]", "%s:%d(%s): " fmt "\n",               \
+                                           __FILE__, __LINE__, __FUNCTION__, ##args); \
         }                                                                                       \
     } while (0)
 
@@ -264,8 +263,8 @@ void *persist_worker(void *args);
 #define LOG_FATAL(fmt, args...)                                                             \
     do                                                                                      \
     {                                                                                       \
-        Log::getInstance()->try_append("[FATAL]", "[%u]%s:%d(%s): " fmt "\n",               \
-                                       gettid(), __FILE__, __LINE__, __FUNCTION__, ##args); \
+        Log::getInstance()->try_append("[FATAL]", "%s:%d(%s): " fmt "\n",               \
+                                       __FILE__, __LINE__, __FUNCTION__, ##args); \
     } while (0)
 
 #endif
