@@ -19,6 +19,6 @@ int main()
         LOG_ERROR("this test is no.%d", i);
     }
     uint64_t end_ts = get_current_millis();
-    printf("time use %llu\n", end_ts - start_ts);
+    printf("time use %llus\n", end_ts - start_ts);
     return 0;
 }
